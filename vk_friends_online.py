@@ -18,10 +18,22 @@ def get_online_friends(login, password):
         app_id=APP_ID,
         user_login=login,
         user_password=password,
+        scope='friends'
     )
     api = vk.API(session)
-    all_friends = api.friends.get(fields='online')
-    return [online_friend for online_friend in all_friends if online_friend['online'] == 1]
+    friends_ids = api.friends.getOnline()
+    """
+    Неоптимальное использование внешнего АПИ.
+    Запросы ко внешним сервисам - это самая медленная часть программы.
+    Она во многие тысячи раз медленнее остального кода на Python
+    из-за сетевых задержек и межпроцессного взаимодействия.
+    Внешних запросов должно быть минимальное количество.
+    (попробуй вытаскивать не всех друзей и потом фильтровать,
+    а сразу вытаскивать только тех, кто онлайн)
+
+    замечательно, был один вызов апи, теперь их будет два (вопрос зачем?)
+    """
+    return api.users.get(user_ids=friends_ids)
 
 
 def output_friends_to_console(friends_online):
